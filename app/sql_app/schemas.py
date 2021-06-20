@@ -1,12 +1,26 @@
-from typing import Optional
+from typing import Optional, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+
+
+# Role schema
+class Role(BaseModel):
+    role: str
+
+    class Config:
+        orm_mode = True
+
+class RoleCreate(BaseModel):
+    owner_id: int
+    role: str
+
+
 
 
 # User Schema
 
 class UserBase(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class UserCreate(UserBase):
@@ -16,6 +30,7 @@ class UserCreate(UserBase):
 class User(UserBase):
     id: int
     is_active: bool
+    roles : List[str]
 
     class Config:
         orm_mode = True
@@ -29,3 +44,4 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+

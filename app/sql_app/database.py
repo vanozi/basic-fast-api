@@ -4,9 +4,6 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import get_settings
 
-# SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
-SQLALCHEMY_DATABASE_URL = "postgresql:///vroege"
-
 engine = create_engine(
     get_settings().sqlalchemy_database_url
 )
