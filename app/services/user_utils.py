@@ -1,5 +1,5 @@
-from app.sql_app import schemas, models
 from app.sql_app import crud
+from app.sql_app import schemas
 
 
 def get_user_response(db, user_id) -> schemas.User:
@@ -10,6 +10,7 @@ def get_user_response(db, user_id) -> schemas.User:
         id=user.id,
         email=user.email,
         is_active=user.is_active,
+        confirmation=user.confirmation,
         roles=role_names
     )
     return response

@@ -2,8 +2,8 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import create_engine
 from alembic import context
+from sqlalchemy import create_engine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -17,12 +17,14 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(base_dir)
-from app.sql_app.models import * # This helps alembic autogeneration
 from app.sql_app.database import Base
+
 target_metadata = Base.metadata
+
 
 def get_url():
     return os.getenv("SQLALCHEMY_DATABASE_URL", "postgresql://vanozi:vanozi@127.0.0.1:5432/vroege")
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.

@@ -1,9 +1,8 @@
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
-from pathlib import Path
-from app.routers import users, auth, roles
+from app.routers import auth, users, roles
 
 app = FastAPI()
 
@@ -26,5 +25,4 @@ app.include_router(auth.router)
 app.include_router(roles.router)
 
 if __name__ == "__main__":
-
     uvicorn.run(app, host="0.0.0.0", port=8000)

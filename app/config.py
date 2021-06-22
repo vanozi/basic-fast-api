@@ -1,6 +1,7 @@
+import sys
 from functools import lru_cache
 from pathlib import Path
-import sys
+
 from pydantic import BaseSettings
 
 
@@ -19,6 +20,14 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+    registration_token_lifetime: int = 7
+
+    # to be put in dotenv for production
+    base_url: str = 'http://localhost:8000'
+    api_prefix: str = "/api"
+    smtp_server: str
+    app_name: str
+    mail_sender: str = 'henk@henk.com'
 
     class Config:
         env_file = "../.env"
