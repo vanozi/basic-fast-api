@@ -18,6 +18,17 @@ class Mailer:
 
     @staticmethod
     def send_confirmation_message(token: str, mail_to: str):
+        confirmation_url = f'{settings.base_url}{settings.api_prefix}/auth/activate_email/{token}'
+        message = '''Hi!
+    Please confirm your registration: {}.'''.format(confirmation_url)
+        Mailer.send_message(
+            message,
+            'Please confirm your registration',
+            mail_to
+        )
+
+    @staticmethod
+    def send_password_reset_message(token: str, mail_to: str):
         confirmation_url = '{}{}/auth/verify/{}'.format(settings.base_url, settings.api_prefix, token)
         message = '''Hi!
     Please confirm your registration: {}.'''.format(confirmation_url)

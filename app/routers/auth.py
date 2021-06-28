@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app import config
 from app.config import get_settings
 from app.services.auth import Auth
+from app.services.mailer import Mailer
 from app.services.user_utils import get_user_response
 from app.sql_app import crud
 from app.sql_app import schemas
@@ -38,18 +39,22 @@ async def login_for_access_token(settings: config.Settings = Depends(get_setting
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/verify-email/{token}", response_model=schemas.User)
+@router.get("/activate_email/{token}", response_model=schemas.User)
 async def verify_email(token: str, settings: config.Settings = Depends(get_settings), db: Session = Depends(get_db)):
     invalid_token_error = HTTPException(status_code=400, detail="Invalid token")
+    # Check if token expiration date is reached
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=settings.algorithm)
     except jwt.JWTError:
         raise HTTPException(status_code=403, detail="Token has expired")
+    # Check if scope of the token is valid
     if payload['scope'] != 'registration':
         raise invalid_token_error
     user = crud.get_user_by_email(db=db, email=payload['sub'])
-    if not user or user.confirmation.hex != payload['jti']:
+    # Check if token belongs to user and not already been used
+    if not user or user.confirmation is None or user.confirmation.hex != payload['jti']:
         raise invalid_token_error
+    # Check if email is already activated
     if user.is_active:
         raise HTTPException(status_code=403, detail="User already activated")
     user.confirmation = None
@@ -57,7 +62,41 @@ async def verify_email(token: str, settings: config.Settings = Depends(get_setti
     db.commit()
     return get_user_response(db=db, user_id=user.id)
 
-# forgot password
+@router.post("/forgot_password")
+async def forgot_password(user: schemas.UserBase, db: Session = Depends(get_db)):
+    user = crud.get_user_by_email(db=db, email=user.email)
+    if not user:
+        raise HTTPException(status_code=400, detail="Email address does not exist")
+    reset = Auth.create_password_reset_token(user_email=user.email)
+    try:
+        Mailer.send_password_reset_message(token=reset["token"], mail_to=user.email)
+    except ConnectionRefusedError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Email couldn't be send. Please try again."
+        )
+    return True
+
+# reset password
+@router.post("/reset_password/{token}")
+async def reset_password(data:schemas.ResetPassword, token: str, settings: config.Settings = Depends(get_settings), db: Session = Depends(get_db)):
+    # decode token and get user
+    invalid_token_error = HTTPException(status_code=400, detail="Invalid token")
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=settings.algorithm)
+    except jwt.JWTError:
+        raise HTTPException(status_code=403, detail="Token has expired")
+    if payload['scope'] != 'reset_password':
+        raise invalid_token_error
+    # Look up user from token
+    user = crud.get_user_by_email(db=db, email=payload['sub'])
+    if not user:
+        raise invalid_token_error
+    # hash the new password and save it
+    hashed_password = Auth.get_password_hash(password=data.password)
+    user.hashed_password = hashed_password
+    db.commit()
+    return get_user_response(db=db, user_id=user.id)
 # https://dev.to/paurakhsharma/flask-rest-api-part-5-password-reset-2f2e
 
 # reset password

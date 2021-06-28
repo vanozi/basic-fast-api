@@ -20,7 +20,8 @@ class Settings(BaseSettings):
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
-    registration_token_lifetime: int = 7
+    registration_token_lifetime: int = 7200
+    reset_password_token_lifetime: int = 7200
 
     # to be put in dotenv for production
     base_url: str = 'http://localhost:8000'

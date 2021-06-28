@@ -48,3 +48,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+# reset password Schema
+class ResetPassword(BaseModel):
+    password:str

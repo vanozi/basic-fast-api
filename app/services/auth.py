@@ -61,6 +61,23 @@ class Auth:
             )
         }
 
+    @staticmethod
+    def create_password_reset_token(user_email: str):
+        jti = uuid.uuid4()
+        claims = {
+            "sub": user_email,
+            "scope": "password_reset",
+            "jti": jti.hex
+        }
+        return {
+            "jti": jti,
+            "token": Auth.create_access_token(
+                claims,
+                settings,
+                timedelta(minutes=settings.reset_password_token_lifetime)
+            )
+        }
+
     # Authenticate and return user
     @staticmethod
     def authenticate_user(email: str, password: str, db: Session):
