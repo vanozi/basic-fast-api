@@ -25,6 +25,15 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_password: str, con
     db.refresh(db_user)
     return db_user
 
+def create_admin_user(db: Session, email:str, hashed_password: str):
+    db_user = models.User(email=email, hashed_password=hashed_password)
+    db_user.confirmation = None
+    db_user.is_active = True
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 
 def update_user(db: Session, user_id: int, updated_user=schemas.User):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
